@@ -34,4 +34,4 @@ while True:
     )
 
 
-    time.sleep(3)
+    time.sleep(0.05)

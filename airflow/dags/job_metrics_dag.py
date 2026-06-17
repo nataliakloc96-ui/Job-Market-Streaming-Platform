@@ -8,7 +8,7 @@ import psycopg2
 def refresh_metrics():
     conn = psycopg2.connect(
         host="job-postgres",
-        database="postgres",
+        database="jobs_db",
         user="postgres",
         password="postgres"
     )
@@ -17,7 +17,7 @@ def refresh_metrics():
 
     cur.execute(
         """
-        INSER INTO job_metrics (
+        INSERT INTO job_metrics (
             job_title,
             offers_count,
             avg_salary,

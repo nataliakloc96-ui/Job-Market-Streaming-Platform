@@ -30,6 +30,10 @@ The system generates job events, streams them through Apache Kafka, processes da
               Streamlit Dashboard
 ```
 
+📌 Detailed architecture:
+
+[View architecture documentation](docs/architecture.md)
+
 ---
 
 ## Tech Stack
@@ -150,6 +154,24 @@ URL:
 ```
 localhost:8501
 ```
+---
+## Screenshots
+
+
+### Streaming Dashboard
+
+![Dashboard](docs/images/dashboard.png)
+
+
+### Airflow DAG
+
+![Airflow](docs/images/airflow.png)
+
+
+### Spark Streaming
+
+![Streaming](docs/images/streaming.png)
+
 
 ---
 

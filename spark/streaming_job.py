@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession
+import psycopg2
 from pyspark.sql.functions import col, from_json
 from pyspark.sql.types import (
     StructType,
@@ -56,38 +57,67 @@ jobs = (
 
 def save_to_postgres(batch_df, batch_id):
 
-    (
-        batch_df
-        .write
-        .format("jdbc")
-        .option(
-            "url",
-            "jdbc:postgresql://job-postgres:5432/postgres"
-        )
-        .option(
-            "dbtable",
-            "job_events_raw"
-        )
-        .option(
-            "user",
-            "postgres"
-        )
-        .option(
-            "password",
-            "postgres"
-        )
-        .option(
-            "driver",
-            "org.postgresql.Driver"
-        )
-        .mode("append")
-        .save()
+    print(f"\n========== Batch: {batch_id} ==========")
+
+    batch_df.select(
+        "title",
+        "salary"
+    ).show(
+        truncate=False
     )
+
+    rows = batch_df.collect()
+
+    conn = psycopg2.connect(
+        host="postgres",
+        database="jobs_db",
+        user="postgres",
+        password="postgres"
+    )
+
+    cur = conn.cursor()
+
+    for row in rows:
+        cur.execute(
+            """
+            INSERT INTO job_events_raw (
+                job_id,
+                title,
+                company,
+                location,
+                salary,
+                skills
+            )
+            VALUES (%s,%s,%s,%s,%s,%s)
+            ON CONFLICT (job_id)
+            DO NOTHING
+            """,
+            (
+                row.job_id,
+                row.title,
+                row.company,
+                row.location,
+                row.salary,
+                row.skills,
+            )
+        )
+    conn.commit()
+    cur.close()
+    conn.close()
+    print(f"Batch {batch_id} saved")
 
 query = (
     jobs.writeStream
     .foreachBatch(save_to_postgres)
+    .option(
+        "checkpointLocation",
+        "/tmp/job_stream/checkpoint"
+    )
     .start()
 )
 
+print("Spark streaming started")
+
 query.awaitTermination()
+
+    
